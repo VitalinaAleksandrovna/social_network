@@ -1,0 +1,48 @@
+# Django
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+
+# Database
+*.sqlite3
+*.db
+*.sql
+/migrations/*.py
+!/migrations/__init__.py
+
+# Media and Static files
+/media/
+/staticfiles/
+/static/css/*.css
+!/static/css/base.css
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# PyCharm
+.idea/
+
+# UV
+.uv/

@@ -1,0 +1,19 @@
+[project]
+name = "social-network"
+version = "0.1.0"
+description = "Social network built with Django"
+dependencies = [
+    "Django>=5.0.2",
+    "Pillow>=10.2.0",
+    "djangorestframework>=3.15.1",
+    "django-cors-headers>=4.4.0",
+    "python-dotenv>=1.0.1",
+    "djangorestframework-simplejwt>=5.3.1", 
+    "django-allauth>=0.58.2",
+    "django-crispy-forms>=2.1",
+    "crispy-bootstrap5>=0.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

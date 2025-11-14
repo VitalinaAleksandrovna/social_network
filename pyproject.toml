@@ -1,19 +1,41 @@
 [project]
 name = "social-network"
 version = "0.1.0"
-description = "Social network built with Django"
+description = "Social network built with Django and PostgreSQL"
 dependencies = [
+    # Django и основные зависимости
     "Django>=5.0.2",
+    "psycopg2-binary>=3.1.0",  # ДРАЙВЕР POSTGRESQL
     "Pillow>=10.2.0",
     "djangorestframework>=3.15.1",
     "django-cors-headers>=4.4.0",
     "python-dotenv>=1.0.1",
-    "djangorestframework-simplejwt>=5.3.1", 
+
+    # Аутентификация и безопасность
+    "djangorestframework-simplejwt>=5.3.1",
     "django-allauth>=0.58.2",
+
+    # Формы и UI
     "django-crispy-forms>=2.1",
     "crispy-bootstrap5>=0.7",
+
+    # Кеширование и производительность
+    "redis>=5.0.1",
+    "django-redis>=5.4.0",
+
+    # База данных и ORM
+    "django-filter>=23.5",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "django-debug-toolbar>=4.3.0",
+    "pytest-django>=4.8.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.1.1",
+    "flake8>=7.0.0",
+]

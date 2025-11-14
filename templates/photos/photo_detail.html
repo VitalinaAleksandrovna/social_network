@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Фото {{ photo.id }} - Social Network{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.caption }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if photo.user.profile_picture %}
+                        <img src="{{ photo.user.profile_picture.url }}" class="user-avatar me-2" alt="{{ photo.user.username }}">
+                    {% else %}
+                        <i class="fas fa-user-circle me-2 text-muted fa-2x"></i>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none">
+                            <strong>{{ photo.user.username }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">{{ photo.created_at|timesince }} назад</small>
+                    </div>
+
+                    {% if user == photo.user %}
+                    <div class="ms-auto">
+                        <a href="{% url 'delete_photo' photo.id %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if photo.caption %}
+                    <p class="card-text">{{ photo.caption }}</p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" name="like" class="btn btn-sm {% if user_has_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                <i class="fas fa-heart"></i>
+                                {{ photo.likes.count }}
+                            </button>
+                        </form>
+
+                        <span class="ms-2 text-muted">
+                            <i class="fas fa-comment"></i> {{ comments.count }}
+                        </span>
+                    </div>
+
+                    <div class="text-muted small">
+                        {{ photo.created_at|date:"d M Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Комментарии -->
+        <div class="card mt-4" id="comments">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments"></i> Комментарии ({{ comments.count }})
+                </h5>
+            </div>
+
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    {{ comment_form|crispy }}
+                    <button type="submit" name="comment" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Отправить
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий
+                </div>
+                {% endif %}
+
+                {% for comment in comments %}
+                <div class="d-flex mb-3">
+                    {% if comment.user.profile_picture %}
+                        <img src="{{ comment.user.profile_picture.url }}" class="user-avatar me-3" alt="{{ comment.user.username }}">
+                    {% else %}
+                        <i class="fas fa-user-circle me-3 text-muted fa-2x"></i>
+                    {% endif %}
+
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <a href="{% url 'user_profile' comment.user.username %}" class="text-decoration-none">
+                                    <strong>{{ comment.user.username }}</strong>
+                                </a>
+                                <p class="mb-1">{{ comment.text }}</p>
+                            </div>
+                            <small class="text-muted">{{ comment.created_at|timesince }} назад</small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3">Пока нет комментариев. Будьте первым!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

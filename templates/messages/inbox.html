@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Сообщения - Social Network{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Беседы</h5>
+                <a href="{% url 'start_conversation' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Новая
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if conversations %}
+                <div class="list-group list-group-flush">
+                    {% for conversation in conversations %}
+                    <a href="{% url 'conversation_detail' conversation.id %}"
+                       class="list-group-item list-group-item-action {% if request.resolver_match.kwargs.conversation_id == conversation.id|stringformat:'i' %}active{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                {% for participant in conversation.participants.all %}
+                                    {% if participant != user %}
+                                        {% if participant.profile_picture %}
+                                            <img src="{{ participant.profile_picture.url }}" class="user-avatar me-2" alt="{{ participant.username }}">
+                                        {% else %}
+                                            <i class="fas fa-user-circle me-2 text-muted"></i>
+                                        {% endif %}
+                                        <strong>{{ participant.username }}</strong>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% if conversation.unread_count > 0 %}
+                            <span class="unread-count">{{ conversation.unread_count }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% with last_message=conversation.last_message %}
+                        {% if last_message %}
+                        <p class="mb-1 text-muted small">
+                            {{ last_message.content|truncatewords:10 }}
+                        </p>
+                        <small>{{ last_message.timestamp|timesince }} назад</small>
+                        {% endif %}
+                        {% endwith %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-envelope fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">Нет сообщений</p>
+                    <a href="{% url 'start_conversation' %}" class="btn btn-primary btn-sm">
+                        Начать беседу
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="text-center text-muted">
+                    <i class="fas fa-comments fa-3x mb-3"></i>
+                    <h5>Выберите беседу</h5>
+                    <p>или начните новую</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

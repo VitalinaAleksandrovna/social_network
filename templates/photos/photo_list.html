@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Лента фотографий - Social Network{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-images"></i> Лента фотографий
+    </h2>
+
+    {% if user.is_authenticated %}
+    <a href="{% url 'upload_photo' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Загрузить фото
+    </a>
+    {% endif %}
+</div>
+
+{% if photos %}
+<div class="row">
+    {% for photo in photos %}
+    <div class="col-md-4 mb-4">
+        <div class="card photo-card h-100">
+            <a href="{% url 'photo_detail' photo.id %}">
+                <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.caption }}" style="height: 250px; object-fit: cover;">
+            </a>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    {% if photo.user.profile_picture %}
+                        <img src="{{ photo.user.profile_picture.url }}" class="user-avatar me-2" alt="{{ photo.user.username }}">
+                    {% else %}
+                        <i class="fas fa-user-circle me-2 text-muted"></i>
+                    {% endif %}
+                    <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none">
+                        <strong>{{ photo.user.username }}</strong>
+                    </a>
+                </div>
+
+                {% if photo.caption %}
+                    <p class="card-text">{{ photo.caption }}</p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>
+                        <i class="fas fa-heart text-danger"></i> {{ photo.likes.count }}
+                    </span>
+                    <span>
+                        <i class="fas fa-comment"></i> {{ photo.comments.count }}
+                    </span>
+                    <span>
+                        {{ photo.created_at|timesince }} назад
+                    </span>
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <div class="card-footer bg-transparent">
+                <form method="post" action="{% url 'like_photo' photo.id %}" class="d-inline like-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if user in photo.likes.all %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                        <i class="fas fa-heart"></i>
+                        {% if user in photo.likes.all %}Не нравится{% else %}Нравится{% endif %}
+                    </button>
+                </form>
+
+                <a href="{% url 'photo_detail' photo.id %}#comments" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-comment"></i> Комментировать
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Пагинация -->
+{% if photos.has_other_pages %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if photos.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ photos.previous_page_number }}">Назад</a>
+            </li>
+        {% endif %}
+
+        {% for num in photos.paginator.page_range %}
+            {% if photos.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if photos.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ photos.next_page_number }}">Вперед</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">Пока нет фотографий</h4>
+    <p class="text-muted">Будьте первым, кто загрузит фотографию!</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'upload_photo' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Загрузить первую фотографию
+        </a>
+    {% else %}
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus"></i> Зарегистрироваться
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+// AJAX лайки
+document.addEventListener('DOMContentLoaded', function() {
+    const likeForms = document.querySelectorAll('.like-form');
+
+    likeForms.forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const button = this.querySelector('button');
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.liked) {
+                    button.classList.remove('btn-outline-danger');
+                    button.classList.add('btn-danger');
+                    button.innerHTML = '<i class="fas fa-heart"></i> Не нравится';
+                } else {
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-outline-danger');
+                    button.innerHTML = '<i class="fas fa-heart"></i> Нравится';
+                }
+
+                // Обновляем счетчик лайков (нужно добавить элемент для отображения)
+                const likesCount = this.closest('.card').querySelector('.fa-heart').parentElement;
+                likesCount.innerHTML = `<i class="fas fa-heart text-danger"></i> ${data.likes_count}`;
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

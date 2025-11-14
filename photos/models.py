@@ -5,7 +5,6 @@
 from django.db import models
 from users.models import CustomUser
 
-
 class Photo(models.Model):
     """Модель фотографии с метаданными"""
     user = models.ForeignKey(
@@ -42,6 +41,10 @@ class Photo(models.Model):
         ordering = ['-created_at']
         verbose_name = "Фотография"
         verbose_name_plural = "Фотографии"
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['user', 'created_at']),
+        ]
 
     def __str__(self):
         return f"Фото {self.id} от {self.user.username}"
@@ -53,7 +56,6 @@ class Photo(models.Model):
     @property
     def comments_count(self):
         return self.comments.count()
-
 
 class Comment(models.Model):
     """Модель комментария к фотографии"""
@@ -82,6 +84,9 @@ class Comment(models.Model):
         ordering = ['created_at']
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
+        indexes = [
+            models.Index(fields=['photo', 'created_at']),
+        ]
 
     def __str__(self):
         return f"Комментарий {self.user.username} к фото {self.photo.id}"

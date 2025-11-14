@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Загрузка фотографии - Social Network{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-cloud-upload-alt"></i> Загрузка фотографии
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        {{ form.image|as_crispy_field }}
+                        <div class="form-text">
+                            Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимальный размер: 5MB.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.caption|as_crispy_field }}
+                        <div class="form-text">
+                            Необязательное описание к вашей фотографии.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'photo_list' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Загрузить фотографию
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-lightbulb"></i> Советы по загрузке
+                </h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i> Используйте качественные фотографии</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Добавляйте описания для лучшего вовлечения</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Оптимальный размер: 1080x1080 пикселей</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Поддерживаются все популярные форматы</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Предпросмотр изображения перед загрузкой
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.createElement('div');
+    imagePreview.className = 'mt-3';
+    imagePreview.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Предпросмотр</h6>
+            </div>
+            <div class="card-body text-center">
+                <img id="previewImage" src="#" alt="Предпросмотр" class="img-fluid rounded" style="max-height: 300px; display: none;">
+                <p id="previewText" class="text-muted mt-2">Изображение появится здесь после выбора</p>
+            </div>
+        </div>
+    `;
+
+    imageInput.parentNode.appendChild(imagePreview);
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewImage = document.getElementById('previewImage');
+        const previewText = document.getElementById('previewText');
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                previewText.style.display = 'none';
+            }
+
+            reader.readAsDataURL(file);
+        } else {
+            previewImage.style.display = 'none';
+            previewText.style.display = 'block';
+        }
+    });
+
+    // Валидация размера файла
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('id_image');
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB в байтах
+
+            if (file.size > maxSize) {
+                e.preventDefault();
+                alert('Размер файла превышает 5MB. Пожалуйста, выберите файл меньшего размера.');
+                return false;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

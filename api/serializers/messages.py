@@ -3,9 +3,8 @@
 Функционал: Преобразование бесед и сообщений в JSON
 """
 from rest_framework import serializers
-from messages.models import Conversation, Message
+from chat.models import Conversation, Message  # ← ИЗМЕНИЛИ ЗДЕСЬ
 from api.serializers.users import UserListSerializer
-
 
 class MessageSerializer(serializers.ModelSerializer):
     """Сериализатор для сообщений"""
@@ -16,7 +15,6 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ('id', 'sender', 'content', 'timestamp', 'read')
         read_only_fields = ('id', 'timestamp', 'read')
 
-
 class ConversationListSerializer(serializers.ModelSerializer):
     """Сериализатор для списка бесед"""
     participants = UserListSerializer(many=True, read_only=True)
@@ -26,8 +24,7 @@ class ConversationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ('id', 'participants', 'other_participants', 'created_at', 'updated_at', 'last_message',
-                  'unread_count')
+        fields = ('id', 'participants', 'other_participants', 'created_at', 'updated_at', 'last_message', 'unread_count')
 
     def get_last_message(self, obj):
         """Последнее сообщение в беседе"""
@@ -50,7 +47,6 @@ class ConversationListSerializer(serializers.ModelSerializer):
             other_participants = obj.participants.exclude(id=request.user.id)
             return UserListSerializer(other_participants, many=True).data
         return []
-
 
 class ConversationDetailSerializer(serializers.ModelSerializer):
     """Сериализатор для детального просмотра беседы"""

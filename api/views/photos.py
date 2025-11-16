@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from photos.models import Photo, Comment
+from users.models import Friendship  # ← ДОБАВЛЕН ИМПОРТ
 from api.serializers.photos import PhotoSerializer, PhotoCreateSerializer, CommentSerializer
 from api.permissions import IsOwnerOrReadOnly
 
@@ -83,6 +84,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
                 serializer.save(photo=photo, user=request.user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return None
 
     @action(detail=False, methods=['get'])
     def my_photos(self, request):

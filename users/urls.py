@@ -1,7 +1,3 @@
-"""
-URL маршруты для приложения пользователей
-Функционал: Определение endpoints для пользовательских операций
-"""
 from django.urls import path
 from . import views
 
@@ -11,9 +7,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
 
-    # Профили
-    path('profile/<str:username>/', views.user_profile, name='user_profile'),
+    # Профили - ВАЖНО: конкретный маршрут ДО общего
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/<str:username>/', views.user_profile, name='user_profile'),
 
     # Система друзей
     path('friend-request/<str:username>/', views.send_friend_request, name='send_friend_request'),

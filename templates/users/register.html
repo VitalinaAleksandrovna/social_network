@@ -1,60 +1,13 @@
-{% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% extends 'base.html' %}
 
-{% block title %}Регистрация - Social Network{% endblock %}
+{% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-user-plus"></i> Регистрация
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form.username|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.email|as_crispy_field }}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form.password1|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.password2|as_crispy_field }}
-                        </div>
-                    </div>
-
-                    {{ form.bio|as_crispy_field }}
-                    {{ form.profile_picture|as_crispy_field }}
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-plus"></i> Зарегистрироваться
-                        </button>
-                    </div>
-                </form>
-
-                <hr>
-
-                <div class="text-center">
-                    <p>Уже есть аккаунт?
-                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">
-                            Войти
-                        </a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<h2>Регистрация</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Зарегистрироваться</button>
+</form>
+<p><a href="{% url 'login' %}">Уже есть аккаунт? Войдите</a></p>
 {% endblock %}

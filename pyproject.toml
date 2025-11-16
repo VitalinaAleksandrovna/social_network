@@ -2,40 +2,68 @@
 name = "social-network"
 version = "0.1.0"
 description = "Social network built with Django and PostgreSQL"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["django", "social", "network"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Django",
+    "Framework :: Django :: 5.0",
+]
+
 dependencies = [
-    # Django и основные зависимости
     "Django>=5.0.2",
-    "psycopg2-binary>=3.1.0",  # ДРАЙВЕР POSTGRESQL
+    "psycopg2-binary>=2.9.0",
     "Pillow>=10.2.0",
     "djangorestframework>=3.15.1",
     "django-cors-headers>=4.4.0",
     "python-dotenv>=1.0.1",
-
-    # Аутентификация и безопасность
     "djangorestframework-simplejwt>=5.3.1",
     "django-allauth>=0.58.2",
-
-    # Формы и UI
     "django-crispy-forms>=2.1",
     "crispy-bootstrap5>=0.7",
-
-    # Кеширование и производительность
     "redis>=5.0.1",
     "django-redis>=5.4.0",
-
-    # База данных и ORM
     "django-filter>=23.5",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = [
+[project.optional-dependencies]
+dev = [
     "django-debug-toolbar>=4.3.0",
     "pytest-django>=4.8.0",
     "pytest-cov>=4.1.0",
     "black>=24.1.1",
     "flake8>=7.0.0",
 ]
+
+[build-system]
+requires = ["setuptools>=45.0", "setuptools-scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "social_network",
+    "users",
+    "photos",
+    "api",
+    "chat"
+]
+
+[tool.setuptools.package-dir]
+"social_network" = "social_network"
+"users" = "users"
+"photos" = "photos"
+"api" = "api"
+"chat" = "chat"
+
+# Для статических файлов и шаблонов
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.css", "*.js", "*.png", "*.jpg", "*.jpeg", "*.gif"]

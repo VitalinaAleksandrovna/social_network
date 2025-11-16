@@ -23,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Дополнительная информация', {
-            'fields': ('email', 'bio', 'profile_picture')
+            'fields': ('email', 'bio', 'profile_picture', 'birth_date', 'location', 'website')
         }),
     )
 

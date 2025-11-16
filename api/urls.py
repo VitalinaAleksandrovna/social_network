@@ -22,5 +22,5 @@ urlpatterns = [
 
     # Кастомные API endpoints
     path('photos/<int:photo_id>/like/', photos.like_photo_api, name='api_like_photo'),
-    path('users/<str:username>/friends/', users.user_friends, name='api_user_friends'),
+    #path('users/<str:username>/friends/', users.user_friends, name='api_user_friends'),
 ]

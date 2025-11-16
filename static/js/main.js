@@ -3,6 +3,7 @@
 class SocialNetwork {
     constructor() {
         this.apiBaseUrl = '/api';
+        this.isLoading = false;
         this.init();
     }
 
@@ -41,25 +42,29 @@ class SocialNetwork {
 
     setupAjaxHandlers() {
         // Глобальная обработка AJAX ошибок
+        const self = this;
+
         $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
             console.error('AJAX Error:', thrownError);
 
             if (jqXHR.status === 403) {
-                this.showNotification('Ошибка доступа', 'danger');
+                self.showNotification('Ошибка доступа', 'danger');
             } else if (jqXHR.status === 401) {
-                this.showNotification('Требуется авторизация', 'warning');
+                self.showNotification('Требуется авторизация', 'warning');
                 setTimeout(() => {
                     window.location.href = '/users/login/';
                 }, 2000);
             } else if (jqXHR.status === 500) {
-                this.showNotification('Ошибка сервера', 'danger');
+                self.showNotification('Ошибка сервера', 'danger');
             }
-        }.bind(this));
+        });
     }
 
     setupUIInteractions() {
         // Инициализация tooltips
-        $('[data-bs-toggle="tooltip"]').tooltip();
+        if (typeof $.fn.tooltip !== 'undefined') {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        }
 
         // Auto-dismiss alerts
         $('.alert').delay(5000).fadeOut(300);
@@ -74,7 +79,10 @@ class SocialNetwork {
     setupImageHandlers() {
         // Обработка ошибок загрузки изображений
         $('img').on('error', function() {
-            $(this).attr('src', '/static/images/default-image.png');
+            const defaultImage = '/static/images/default-image.png';
+            if ($(this).attr('src') !== defaultImage) {
+                $(this).attr('src', defaultImage);
+            }
         });
 
         // Lazy loading для изображений
@@ -83,9 +91,11 @@ class SocialNetwork {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.classList.remove('lazy');
-                        imageObserver.unobserve(img);
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.classList.remove('lazy');
+                            imageObserver.unobserve(img);
+                        }
                     }
                 });
             });
@@ -98,21 +108,30 @@ class SocialNetwork {
 
     setupInfiniteScroll() {
         // Базовая реализация бесконечной прокрутки
-        let isLoading = false;
+        const self = this;
 
         $(window).on('scroll', function() {
+            if (self.isLoading) return;
+
             if ($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
-                this.loadMoreContent();
+                self.loadMoreContent();
             }
-        }.bind(this));
+        });
     }
 
     async loadMoreContent() {
         if (this.isLoading) return;
 
         this.isLoading = true;
-        // Реализация загрузки дополнительного контента
-        this.isLoading = false;
+        try {
+            // Реализация загрузки дополнительного контента
+            console.log('Loading more content...');
+            // Здесь должна быть логика загрузки
+        } catch (error) {
+            console.error('Error loading more content:', error);
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     // API методы
@@ -142,7 +161,7 @@ class SocialNetwork {
     showNotification(message, type = 'info') {
         const alertClass = {
             'success': 'alert-success',
-            'error': 'alert-danger',
+            'danger': 'alert-danger',
             'warning': 'alert-warning',
             'info': 'alert-info'
         }[type] || 'alert-info';
@@ -153,6 +172,11 @@ class SocialNetwork {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
+
+        // Создаем контейнер если его нет
+        if ($('.messages').length === 0) {
+            $('body').prepend('<div class="messages container mt-3"></div>');
+        }
 
         $('.messages').append(alertHtml);
 
@@ -170,7 +194,7 @@ class SocialNetwork {
             });
             return data;
         } catch (error) {
-            this.showNotification('Ошибка при обновлении лайка', 'error');
+            this.showNotification('Ошибка при обновлении лайка', 'danger');
             throw error;
         }
     }
@@ -184,7 +208,7 @@ class SocialNetwork {
             this.showNotification('Запрос на дружбу отправлен', 'success');
             return data;
         } catch (error) {
-            this.showNotification('Ошибка при отправке запроса', 'error');
+            this.showNotification('Ошибка при отправке запроса', 'danger');
             throw error;
         }
     }

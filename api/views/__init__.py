@@ -4,7 +4,7 @@
 """
 from .users import UserViewSet
 from .photos import PhotoViewSet, like_photo_api
-from .messages import ConversationViewSet
+from .messages import ConversationViewSet  # ← ОСТАЕТСЯ ТАК ЖЕ
 
 # Экспортируем все ViewSets и функции
 __all__ = [

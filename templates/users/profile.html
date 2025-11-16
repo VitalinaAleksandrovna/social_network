@@ -1,142 +1,38 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}{{ profile_user.username }} - Social Network{% endblock %}
+{% block title %}Профиль {{ profile_user.username }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                {% if profile_user.profile_picture %}
-                    <img src="{{ profile_user.profile_picture.url }}" class="profile-avatar mb-3" alt="Profile Picture">
-                {% else %}
-                    <div class="profile-avatar bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                        <i class="fas fa-user fa-4x text-white"></i>
-                    </div>
-                {% endif %}
+<h2>Профиль {{ profile_user.username }}</h2>
 
-                <h3>{{ profile_user.username }}</h3>
+{% if profile_user.profile_picture %}
+    <img src="{{ profile_user.profile_picture.url }}" width="100" style="border-radius: 50%;">
+{% endif %}
 
-                {% if profile_user.full_name %}
-                    <p class="text-muted">{{ profile_user.full_name }}</p>
-                {% endif %}
+<p><strong>Имя:</strong> {{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+<p><strong>О себе:</strong> {{ profile_user.bio|default:"Не указано" }}</p>
+<p><strong>Местоположение:</strong> {{ profile_user.location|default:"Не указано" }}</p>
+<p><strong>Дата регистрации:</strong> {{ profile_user.date_joined|date:"d.m.Y" }}</p>
 
-                {% if user.is_authenticated and user != profile_user %}
-                    <div class="mt-3">
-                        {% if friendship_status == 'friends' %}
-                            <button class="btn btn-success btn-sm" disabled>
-                                <i class="fas fa-check"></i> Друзья
-                            </button>
-                        {% elif friendship_status == 'pending' %}
-                            <button class="btn btn-warning btn-sm" disabled>
-                                <i class="fas fa-clock"></i> Запрос отправлен
-                            </button>
-                        {% elif friendship_status == 'request_received' %}
-                            <form method="post" action="{% url 'accept_friend_request' profile_user.username %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-user-plus"></i> Принять запрос
-                                </button>
-                            </form>
-                        {% else %}
-                            <form method="post" action="{% url 'send_friend_request' profile_user.username %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-user-plus"></i> Добавить в друзья
-                                </button>
-                            </form>
-                        {% endif %}
+{% if user == profile_user %}
+    <a href="{% url 'profile_edit' %}">Редактировать профиль</a>
+{% else %}
+    {% if friendship_status == 'pending' %}
+        <p>Запрос на дружбу отправлен</p>
+    {% elif friendship_status == 'request_received' %}
+        <form method="post" action="{% url 'accept_friend_request' profile_user.username %}">
+            {% csrf_token %}
+            <button type="submit">Принять запрос дружбы</button>
+        </form>
+    {% elif friendship_status == 'accepted' %}
+        <p>Вы друзья</p>
+    {% else %}
+        <form method="post" action="{% url 'send_friend_request' profile_user.username %}">
+            {% csrf_token %}
+            <button type="submit">Добавить в друзья</button>
+        </form>
+    {% endif %}
+{% endif %}
 
-                        <a href="{% url 'send_message' profile_user.username %}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-envelope"></i> Написать
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">Информация</h6>
-            </div>
-            <div class="card-body">
-                {% if profile_user.bio %}
-                    <p>{{ profile_user.bio }}</p>
-                {% else %}
-                    <p class="text-muted">Пользователь еще не добавил информацию о себе</p>
-                {% endif %}
-
-                <ul class="list-unstyled">
-                    {% if profile_user.location %}
-                        <li><i class="fas fa-map-marker-alt text-muted me-2"></i> {{ profile_user.location }}</li>
-                    {% endif %}
-                    {% if profile_user.website %}
-                        <li><i class="fas fa-globe text-muted me-2"></i>
-                            <a href="{{ profile_user.website }}" target="_blank">{{ profile_user.website }}</a>
-                        </li>
-                    {% endif %}
-                    {% if profile_user.birth_date %}
-                        <li><i class="fas fa-birthday-cake text-muted me-2"></i>
-                            {{ profile_user.birth_date|date:"d E Y" }}
-                        </li>
-                    {% endif %}
-                    <li><i class="fas fa-calendar text-muted me-2"></i>
-                        На сайте с {{ profile_user.date_joined|date:"d.m.Y" }}
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4>Фотографии</h4>
-            {% if user == profile_user %}
-                <a href="{% url 'upload_photo' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Загрузить фото
-                </a>
-            {% endif %}
-        </div>
-
-        {% if profile_user.photos.all %}
-            <div class="row">
-                {% for photo in profile_user.photos.all %}
-                <div class="col-md-4 mb-4">
-                    <div class="card photo-card">
-                        <a href="{% url 'photo_detail' photo.id %}">
-                            <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.caption }}" style="height: 200px; object-fit: cover;">
-                        </a>
-                        <div class="card-body">
-                            <p class="card-text small">
-                                {{ photo.caption|truncatewords:10 }}
-                            </p>
-                            <div class="d-flex justify-content-between text-muted small">
-                                <span>
-                                    <i class="fas fa-heart text-danger"></i> {{ photo.likes.count }}
-                                </span>
-                                <span>
-                                    <i class="fas fa-comment"></i> {{ photo.comments.count }}
-                                </span>
-                                <span>
-                                    {{ photo.created_at|date:"d.m.Y" }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Пока нет фотографий</p>
-                {% if user == profile_user %}
-                    <a href="{% url 'upload_photo' %}" class="btn btn-primary">
-                        Загрузить первую фотографию
-                    </a>
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
-</div>
+<p><a href="/">На главную</a></p>
 {% endblock %}

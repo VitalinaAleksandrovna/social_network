@@ -168,7 +168,7 @@ class UsersViewTests(TestCase):
 
         # Должен перенаправить на список фотографий после успешной регистрации
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('photo_list'))
+        self.assertEqual(response.url, reverse('photos/photo_list.html'))
 
         # Проверяем что пользователь создался
         new_user = self.User.objects.get(username='newuser')
@@ -192,7 +192,7 @@ class UsersViewTests(TestCase):
 
         # Должен перенаправить на список фотографий после успешного входа
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('photo_list'))
+        self.assertEqual(response.url, reverse('photos/photo_list.html'))
 
     def test_login_view_post_invalid(self):
         """Тест POST запроса входа с невалидными данными"""

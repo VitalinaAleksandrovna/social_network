@@ -19,6 +19,11 @@ import sys
 def main():
     """Основная функция управления Django."""
 
+    # Добавить путь к проекту в Python path
+    project_path = os.path.dirname(os.path.abspath(__file__))
+    if project_path not in sys.path:
+        sys.path.insert(0, project_path)
+
     # Настройка настроек Django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social_network.settings')
 

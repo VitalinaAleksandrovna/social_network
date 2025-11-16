@@ -2,6 +2,7 @@
 API Views для управления пользователями
 Функционал: REST endpoints для операций с пользователями
 """
+from django.http import JsonResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from users.models import CustomUser, Friendship
 from api.serializers.users import UserProfileSerializer, UserListSerializer, FriendshipSerializer
 from api.permissions import IsOwnerOrReadOnly
+from django.contrib.auth.models import User
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -109,3 +111,47 @@ class UserViewSet(viewsets.ModelViewSet):
 
         serializer = UserListSerializer(friends, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @staticmethod
+    def user_friends(username):
+        """
+        Получить список друзей пользователя
+        """
+        user = get_object_or_404(CustomUser, username=username)  # ← ИЗМЕНИТЬ User на CustomUser
+
+        # Получаем подтвержденные дружеские связи в обе стороны
+        sent_friendships = Friendship.objects.filter(
+            from_user=user, accepted=True
+        ).select_related('to_user')
+
+        received_friendships = Friendship.objects.filter(
+            to_user=user, accepted=True
+        ).select_related('from_user')
+
+        friends_data = []
+
+        # Друзья из отправленных запросов
+        for friendship in sent_friendships:
+            friend = friendship.to_user
+            friends_data.append({
+                'id': friend.id,
+                'username': friend.username,
+                'email': friend.email,
+                'date_joined': friend.date_joined.isoformat(),
+            })
+
+        # Друзья из полученных запросов
+        for friendship in received_friendships:
+            friend = friendship.from_user
+            friends_data.append({
+                'id': friend.id,
+                'username': friend.username,
+                'email': friend.email,
+                'date_joined': friend.date_joined.isoformat(),
+            })
+
+        return JsonResponse({
+            'username': username,
+            'friends_count': len(friends_data),
+            'friends': friends_data
+        })

@@ -6,9 +6,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Max, Count
-from messages.models import Conversation, Message
+from chat.models import Conversation, Message  # ← ИЗМЕНИЛИ ЗДЕСЬ
 from api.serializers.messages import ConversationListSerializer, ConversationDetailSerializer, MessageSerializer
-
 
 class ConversationViewSet(viewsets.ModelViewSet):
     """

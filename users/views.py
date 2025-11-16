@@ -2,6 +2,7 @@
 Представления для управления пользователями
 Функционал: Регистрация, вход, профили, управление друзьями
 """
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -17,9 +18,14 @@ def register(request):
         form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
+
+            # Явно указываем бэкенд аутентификации
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+
             login(request, user)
             messages.success(request, f'Добро пожаловать, {user.username}!')
-            return redirect('photo_list')
+            # Перенаправляем на профиль нового пользователя
+            return redirect('user_profile', username=user.username)
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/register.html', {'form': form})
@@ -50,6 +56,9 @@ def logout_view(request):
 @login_required
 def user_profile(request, username):
     """Просмотр профиля пользователя"""
+    print(f"DEBUG: Looking for user with username: {username}")  # Отладочная информация
+    print(f"DEBUG: Current user: {request.user.username}")
+
     profile_user = get_object_or_404(CustomUser, username=username)
 
     # Проверяем статус дружбы
@@ -84,6 +93,7 @@ def profile_edit(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлен!')
+            # ВАЖНО: перенаправляем на профиль текущего пользователя с username
             return redirect('user_profile', username=request.user.username)
     else:
         form = ProfileEditForm(instance=request.user)
@@ -93,19 +103,25 @@ def profile_edit(request):
 @login_required
 def send_friend_request(request, username):
     """Отправка запроса на дружбу"""
-    if request.method == 'POST':
-        to_user = get_object_or_404(CustomUser, username=username)
-        if request.user != to_user:
-            friendship, created = Friendship.objects.get_or_create(
-                from_user=request.user,
-                to_user=to_user
-            )
-            if created:
-                messages.success(request, f'Запрос на дружбу отправлен {to_user.username}')
-            else:
-                messages.info(request, 'Запрос на дружбу уже отправлен')
+    to_user = get_object_or_404(CustomUser, username=username)
+
+    if request.user == to_user:
+        messages.error(request, 'Нельзя отправить запрос самому себе')
         return redirect('user_profile', username=username)
-    return None
+
+    # Проверяем, не существует ли уже дружба
+    existing_friendship = Friendship.objects.filter(
+        from_user=request.user,
+        to_user=to_user
+    ).first()
+
+    if existing_friendship:
+        messages.info(request, 'Запрос на дружбу уже отправлен')
+    else:
+        Friendship.objects.create(from_user=request.user, to_user=to_user)
+        messages.success(request, f'Запрос на дружбу отправлен {to_user.username}')
+
+    return redirect('user_profile', username=username)
 
 
 @login_required

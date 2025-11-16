@@ -34,12 +34,13 @@ def photo_detail(request, photo_id):
         id=photo_id
     )
     comments = photo.comments.all()
+    user_has_liked = request.user.is_authenticated and photo.likes.filter(id=request.user.id).exists()
 
     # Обработка лайков и комментариев
     if request.method == 'POST' and request.user.is_authenticated:
         if 'like' in request.POST:
             # Переключение лайка
-            if photo.likes.filter(id=request.user.id).exists():
+            if user_has_liked:
                 photo.likes.remove(request.user)
                 liked = False
             else:
@@ -70,7 +71,7 @@ def photo_detail(request, photo_id):
         'photo': photo,
         'comments': comments,
         'comment_form': comment_form,
-        'user_has_liked': request.user.is_authenticated and photo.likes.filter(id=request.user.id).exists()
+        'user_has_liked': user_has_liked
     })
 
 

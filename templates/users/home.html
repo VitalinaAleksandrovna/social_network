@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<h1>Добро пожаловать в Social Network!</h1>
+
+{% if user.is_authenticated %}
+    <p>Рады видеть вас снова, {{ user.username }}!</p>
+    <p><a href="{% url 'user_profile' user.username %}">Перейти к моему профилю</a></p>
+{% else %}
+    <p>Присоединяйтесь к нашему сообществу!</p>
+    <p>
+        <a href="{% url 'register' %}">Зарегистрироваться</a> или 
+        <a href="{% url 'login' %}">Войти</a>
+    </p>
+{% endif %}
+{% endblock %}

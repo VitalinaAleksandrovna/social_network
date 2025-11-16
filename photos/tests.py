@@ -363,6 +363,13 @@ class PhotosPermissionTests(TestCase):
             caption='Фотография владельца'
         )
 
+        def tearDown(self):
+            """Очистка после тестов"""
+            # Удаляем тестовые файлы
+            for photo in Photo.objects.all():
+                if photo.image:
+                    photo.image.delete(save=False)
+
     def test_photo_delete_owner(self):
         """Тест удаления фотографии владельцем"""
         self.client.force_login(self.owner)

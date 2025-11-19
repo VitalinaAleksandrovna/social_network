@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Чат с {{ other_user.username }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e1e8ed;">
+        <a href="{% url 'user_profile' other_user.username %}" style="text-decoration: none;">
+            {% if other_user.profile_picture %}
+                <img src="{{ other_user.profile_picture.url }}"
+                     class="profile-picture-medium"
+                     alt="{{ other_user.username }}">
+            {% else %}
+                <div class="profile-picture-medium"
+                     style="background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ other_user.username|first|upper }}
+                </div>
+            {% endif %}
+        </a>
+        <div>
+            <h2 style="margin: 0;">
+                <a href="{% url 'user_profile' other_user.username %}" style="text-decoration: none; color: inherit;">
+                    💬 {{ other_user.username }}
+                </a>
+            </h2>
+            <p style="margin: 0; color: #666;">Общение в реальном времени</p>
+        </div>
+    </div>
+
+    <div class="messages-container" style="max-height: 500px; overflow-y: auto; margin-bottom: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 10px;">
+        {% for message in messages %}
+            <div style="margin-bottom: 1rem; display: flex; {% if message.sender == user %}justify-content: flex-end{% else %}justify-content: flex-start{% endif %};">
+                <div style="max-width: 70%;">
+                    <div style="background: {% if message.sender == user %}#3498db{% else %}#e1e8ed{% endif %};
+                                color: {% if message.sender == user %}white{% else %}black{% endif %};
+                                padding: 0.75rem 1rem;
+                                border-radius: 18px;
+                                word-wrap: break-word;
+                                box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        {{ message.content }}
+                    </div>
+                    <small style="color: #999; font-size: 0.8rem; display: block; margin-top: 0.25rem; text-align: {% if message.sender == user %}right{% else %}left{% endif %};">
+                        {{ message.timestamp|time }}
+                        {% if message.sender == user and message.is_read %}
+                            ✓✓
+                        {% elif message.sender == user %}
+                            ✓
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        {% empty %}
+            <p style="text-align: center; color: #666; padding: 2rem;">
+                Начните общение с {{ other_user.username }}!
+            </p>
+        {% endfor %}
+    </div>
+
+    <form method="post" style="display: flex; gap: 1rem; align-items: flex-end;">
+        {% csrf_token %}
+        <div style="flex: 1;">
+            <textarea name="content" rows="3" placeholder="Введите ваше сообщение..."
+                      style="width: 100%; padding: 0.75rem; border: 2px solid #e1e8ed; border-radius: 8px; resize: vertical;"></textarea>
+        </div>
+        <button type="submit" style="padding: 0.75rem 1.5rem;">📤 Отправить</button>
+    </form>
+</div>
+
+<style>
+.messages-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+{% endblock %}

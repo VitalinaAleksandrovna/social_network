@@ -4,8 +4,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="fas fa-images"></i> Лента фотографий
+    <h2 class="d-flex align-items-center gap-2 mb-0">
+        <i class="fas fa-images"></i>
+        Лента фотографий
     </h2>
 
     {% if user.is_authenticated %}
@@ -16,49 +17,59 @@
 </div>
 
 {% if photos %}
-<div class="row">
+<div class="photo-grid">
     {% for photo in photos %}
-    <div class="col-md-4 mb-4">
-        <div class="card photo-card h-100">
-            <a href="{% url 'photo_detail' photo.id %}">
-                <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.caption }}" style="height: 250px; object-fit: cover;">
-            </a>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
+    <div class="photo-card card" data-photo-id="{{ photo.id }}">
+        <!-- Заголовок карточки -->
+        <div class="card-header bg-transparent border-bottom-0 py-3">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none d-flex align-items-center">
                     {% if photo.user.profile_picture %}
-                        <img src="{{ photo.user.profile_picture.url }}" class="user-avatar me-2" alt="{{ photo.user.username }}">
+                        <img src="{{ photo.user.profile_picture.url }}" class="user-avatar-small" alt="{{ photo.user.username }}">
                     {% else %}
-                        <i class="fas fa-user-circle me-2 text-muted"></i>
+                        <div class="user-avatar-small user-avatar-small-fallback">
+                            {{ photo.user.username|first|upper }}
+                        </div>
                     {% endif %}
-                    <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none">
-                        <strong>{{ photo.user.username }}</strong>
-                    </a>
-                </div>
+                    <strong class="text-dark ms-2">{{ photo.user.username }}</strong>
+                </a>
+                <small class="text-muted ms-auto">{{ photo.created_at|timesince }} назад</small>
+            </div>
+        </div>
 
-                {% if photo.caption %}
-                    <p class="card-text">{{ photo.caption }}</p>
-                {% endif %}
+        <!-- Фотография -->
+        <a href="{% url 'photo_detail' photo.id %}" class="text-decoration-none">
+            <img src="{{ photo.image.url }}" class="photo-card-image card-img-top" alt="{{ photo.caption }}">
+        </a>
 
-                <div class="d-flex justify-content-between text-muted small">
-                    <span>
-                        <i class="fas fa-heart text-danger"></i> {{ photo.likes.count }}
-                    </span>
-                    <span>
-                        <i class="fas fa-comment"></i> {{ photo.comments.count }}
-                    </span>
-                    <span>
-                        {{ photo.created_at|timesince }} назад
-                    </span>
-                </div>
+        <div class="card-body">
+            <!-- Описание -->
+            {% if photo.caption %}
+                <p class="card-text mb-2">{{ photo.caption|truncatewords:20 }}</p>
+            {% endif %}
+
+            <!-- Статистика -->
+            <div class="d-flex justify-content-between text-muted small mb-3">
+                <span class="d-flex align-items-center gap-1">
+                    <i class="fas fa-heart"></i> 
+                    <span class="like-count">{{ photo.likes.count }}</span>
+                </span>
+                <span class="d-flex align-items-center gap-1">
+                    <i class="fas fa-comment"></i> {{ photo.comments.count }}
+                </span>
+                <span class="d-flex align-items-center gap-1">
+                    <i class="fas fa-clock"></i> {{ photo.created_at|timesince }}
+                </span>
             </div>
 
+            <!-- Действия -->
             {% if user.is_authenticated %}
-            <div class="card-footer bg-transparent">
-                <form method="post" action="{% url 'like_photo' photo.id %}" class="d-inline like-form">
+            <div class="d-flex gap-2">
+                <form method="POST" action="{% url 'like_photo' photo.id %}" class="like-form">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm {% if user in photo.likes.all %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                        <i class="fas fa-heart"></i>
-                        {% if user in photo.likes.all %}Не нравится{% else %}Нравится{% endif %}
+                        <i class="fas fa-heart"></i> 
+                        <span class="like-count">{{ photo.likes.count }}</span>
                     </button>
                 </form>
 
@@ -74,11 +85,11 @@
 
 <!-- Пагинация -->
 {% if photos.has_other_pages %}
-<nav aria-label="Page navigation">
+<nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
         {% if photos.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ photos.previous_page_number }}">Назад</a>
+                <a class="page-link" href="?page={{ photos.previous_page_number }}">← Назад</a>
             </li>
         {% endif %}
 
@@ -96,7 +107,7 @@
 
         {% if photos.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ photos.next_page_number }}">Вперед</a>
+                <a class="page-link" href="?page={{ photos.next_page_number }}">Вперед →</a>
             </li>
         {% endif %}
     </ul>
@@ -105,9 +116,11 @@
 
 {% else %}
 <div class="text-center py-5">
-    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-    <h4 class="text-muted">Пока нет фотографий</h4>
-    <p class="text-muted">Будьте первым, кто загрузит фотографию!</p>
+    <div class="text-muted mb-4">
+        <i class="fas fa-images fa-4x"></i>
+    </div>
+    <h4 class="text-muted mb-3">Пока нет фотографий</h4>
+    <p class="text-muted mb-4">Будьте первым, кто загрузит фотографию!</p>
     {% if user.is_authenticated %}
         <a href="{% url 'upload_photo' %}" class="btn btn-primary btn-lg">
             <i class="fas fa-plus"></i> Загрузить первую фотографию
@@ -120,50 +133,69 @@
 </div>
 {% endif %}
 
-{% block extra_js %}
 <script>
-// AJAX лайки
 document.addEventListener('DOMContentLoaded', function() {
-    const likeForms = document.querySelectorAll('.like-form');
-
-    likeForms.forEach(form => {
-        form.addEventListener('submit', async function(e) {
+    // Обработка лайков в ленте
+    document.querySelectorAll('.like-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const button = this.querySelector('button');
+            const likeCountElements = this.querySelectorAll('.like-count');
 
-            try {
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+            // Показываем состояние загрузки
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
 
-                const data = await response.json();
-
-                if (data.liked) {
-                    button.classList.remove('btn-outline-danger');
-                    button.classList.add('btn-danger');
-                    button.innerHTML = '<i class="fas fa-heart"></i> Не нравится';
-                } else {
-                    button.classList.remove('btn-danger');
-                    button.classList.add('btn-outline-danger');
-                    button.innerHTML = '<i class="fas fa-heart"></i> Нравится';
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                 }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.liked !== undefined) {
+                    // Обновляем все счетчики лайков
+                    likeCountElements.forEach(likeCount => {
+                        likeCount.textContent = data.likes_count;
+                    });
 
-                // Обновляем счетчик лайков (нужно добавить элемент для отображения)
-                const likesCount = this.closest('.card').querySelector('.fa-heart').parentElement;
-                likesCount.innerHTML = `<i class="fas fa-heart text-danger"></i> ${data.likes_count}`;
+                    // Обновляем кнопку
+                    if (data.liked) {
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-danger');
+                        button.innerHTML = '<i class="fas fa-heart"></i> ' + data.likes_count;
+                    } else {
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-outline-danger');
+                        button.innerHTML = '<i class="fas fa-heart"></i> ' + data.likes_count;
+                    }
 
-            } catch (error) {
+                    // Показываем уведомление
+                    if (window.socialApp) {
+                        window.socialApp.showNotification(data.liked ? '❤️ Лайк добавлен' : '💔 Лайк удален', 'success');
+                    }
+                }
+            })
+            .catch(error => {
                 console.error('Error:', error);
-            }
+                // Восстанавливаем оригинальное состояние и отправляем форму обычным способом
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+                this.submit();
+            });
         });
     });
 });
 </script>
-{% endblock %}
 {% endblock %}

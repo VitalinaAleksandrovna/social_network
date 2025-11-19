@@ -1,30 +1,36 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 {% block title %}Фото {{ photo.id }} - Social Network{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.caption }}">
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Фотография -->
+        <div class="card mb-4">
+            <div class="card-body text-center p-0">
+                <img src="{{ photo.image.url }}" class="photo-large photo-image" alt="{{ photo.caption }}">
+            </div>
+
             <div class="card-body">
+                <!-- Информация о пользователе -->
                 <div class="d-flex align-items-center mb-3">
-                    {% if photo.user.profile_picture %}
-                        <img src="{{ photo.user.profile_picture.url }}" class="user-avatar me-2" alt="{{ photo.user.username }}">
-                    {% else %}
-                        <i class="fas fa-user-circle me-2 text-muted fa-2x"></i>
-                    {% endif %}
-                    <div>
-                        <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none">
-                            <strong>{{ photo.user.username }}</strong>
+                    <div class="d-flex align-items-center me-auto">
+                        <a href="{% url 'user_profile' photo.user.username %}" class="text-decoration-none d-flex align-items-center">
+                            {% if photo.user.profile_picture %}
+                                <img src="{{ photo.user.profile_picture.url }}" class="avatar avatar-medium me-2" alt="{{ photo.user.username }}">
+                            {% else %}
+                                <div class="avatar avatar-fallback avatar-fallback-medium me-2">
+                                    {{ photo.user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <strong class="text-dark">{{ photo.user.username }}</strong>
                         </a>
-                        <br>
-                        <small class="text-muted">{{ photo.created_at|timesince }} назад</small>
                     </div>
 
+                    <small class="text-muted me-3">{{ photo.created_at|timesince }} назад</small>
+
                     {% if user == photo.user %}
-                    <div class="ms-auto">
+                    <div class="ms-2">
                         <a href="{% url 'delete_photo' photo.id %}" class="btn btn-outline-danger btn-sm">
                             <i class="fas fa-trash"></i> Удалить
                         </a>
@@ -32,26 +38,28 @@
                     {% endif %}
                 </div>
 
+                <!-- Описание -->
                 {% if photo.caption %}
-                    <p class="card-text">{{ photo.caption }}</p>
+                    <p class="card-text mb-3 fs-5">{{ photo.caption }}</p>
                 {% endif %}
 
+                <!-- Лайки и статистика -->
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <form method="post" class="d-inline">
+                    <div class="d-flex align-items-center gap-3">
+                        <form method="POST" action="{% url 'like_photo' photo.id %}" class="like-form-detail">
                             {% csrf_token %}
-                            <button type="submit" name="like" class="btn btn-sm {% if user_has_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                                <i class="fas fa-heart"></i>
-                                {{ photo.likes.count }}
+                            <button type="submit" class="btn {% if user_has_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                <i class="fas fa-heart"></i> 
+                                <span class="like-count">{{ photo.likes.count }}</span>
                             </button>
                         </form>
 
-                        <span class="ms-2 text-muted">
+                        <span class="text-muted d-flex align-items-center gap-2 fs-5">
                             <i class="fas fa-comment"></i> {{ comments.count }}
                         </span>
                     </div>
 
-                    <div class="text-muted small">
+                    <div class="text-muted">
                         {{ photo.created_at|date:"d M Y H:i" }}
                     </div>
                 </div>
@@ -59,53 +67,114 @@
         </div>
 
         <!-- Комментарии -->
-        <div class="card mt-4" id="comments">
+        <div class="card" id="comments">
             <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-comments"></i> Комментарии ({{ comments.count }})
+                <h5 class="mb-0 d-flex align-items-center gap-2">
+                    <i class="fas fa-comments"></i>
+                    Комментарии ({{ comments.count }})
                 </h5>
             </div>
 
             <div class="card-body">
+                <!-- Форма комментария -->
                 {% if user.is_authenticated %}
-                <form method="post" class="mb-4">
-                    {% csrf_token %}
-                    {{ comment_form|crispy }}
-                    <button type="submit" name="comment" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Отправить
-                    </button>
-                </form>
+                <div class="comment-form mb-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="text" class="form-control" rows="3" placeholder="Напишите комментарий..." required></textarea>
+                        </div>
+                        <button type="submit" name="comment" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Отправить
+                        </button>
+                    </form>
+                </div>
                 {% else %}
-                <div class="alert alert-info">
-                    <a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий
+                <div class="alert alert-info mb-4">
+                    <a href="{% url 'login' %}" class="alert-link">Войдите</a>, чтобы оставить комментарий
                 </div>
                 {% endif %}
 
-                {% for comment in comments %}
-                <div class="d-flex mb-3">
-                    {% if comment.user.profile_picture %}
-                        <img src="{{ comment.user.profile_picture.url }}" class="user-avatar me-3" alt="{{ comment.user.username }}">
-                    {% else %}
-                        <i class="fas fa-user-circle me-3 text-muted fa-2x"></i>
-                    {% endif %}
+                <!-- Список комментариев -->
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment-item d-flex align-items-start">
+                        <!-- Аватарка пользователя -->
+                        <div class="flex-shrink-0">
+                            <a href="{% url 'user_profile' comment.user.username %}">
+                                {% if comment.user.profile_picture %}
+                                    <img src="{{ comment.user.profile_picture.url }}" class="avatar avatar-small" alt="{{ comment.user.username }}">
+                                {% else %}
+                                    <div class="avatar avatar-fallback avatar-fallback-small">
+                                        {{ comment.user.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </a>
+                        </div>
 
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <a href="{% url 'user_profile' comment.user.username %}" class="text-decoration-none">
+                        <!-- Содержание комментария -->
+                        <div class="comment-content flex-grow-1 ms-3">
+                            <div class="comment-header d-flex align-items-center gap-2 mb-1">
+                                <a href="{% url 'user_profile' comment.user.username %}" class="comment-username text-decoration-none">
                                     <strong>{{ comment.user.username }}</strong>
                                 </a>
-                                <p class="mb-1">{{ comment.text }}</p>
+                                <small class="comment-time text-muted">{{ comment.created_at|timesince }} назад</small>
                             </div>
-                            <small class="text-muted">{{ comment.created_at|timesince }} назад</small>
+                            <p class="comment-text mb-0">{{ comment.text }}</p>
                         </div>
                     </div>
+                    {% if not forloop.last %}<hr class="my-2">{% endif %}
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                            <p>Пока нет комментариев. Будьте первым!</p>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <p class="text-muted text-center py-3">Пока нет комментариев. Будьте первым!</p>
-                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const likeForm = document.querySelector('.like-form-detail');
+    
+    if (likeForm) {
+        likeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.liked !== undefined) {
+                    this.querySelector('.like-count').textContent = data.likes_count;
+                    const button = this.querySelector('button');
+                    
+                    if (data.liked) {
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-danger');
+                    } else {
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-outline-danger');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.submit();
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

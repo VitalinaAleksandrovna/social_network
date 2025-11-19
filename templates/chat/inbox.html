@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Сообщения{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>💌 Мои сообщения</h2>
+
+    {% if conversations %}
+        <div class="conversations-list">
+            {% for conversation in conversations %}
+                {% for participant in conversation.participants.all %}
+                    {% if participant != user %}
+                        <div class="conversation-item" style="padding: 1rem; border-bottom: 1px solid #e1e8ed; cursor: pointer;"
+                             onclick="window.location='{% url 'conversation_detail' participant.username %}'">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                {% if participant.profile_picture %}
+                                    <img src="{{ participant.profile_picture.url }}"
+                                         class="profile-picture-small"
+                                         alt="{{ participant.username }}">
+                                {% else %}
+                                    <div class="profile-picture-small"
+                                         style="background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                        {{ participant.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0; color: #2c3e50;">
+                                        {{ participant.username }}
+                                    </h4>
+                                    {% with last_message=conversation.messages.last %}
+                                        {% if last_message %}
+                                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">
+                                                {{ last_message.content|truncatewords:10 }}
+                                            </p>
+                                            <small style="color: #999;">
+                                                {{ last_message.timestamp|timesince }} назад
+                                            </small>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="text-align: center; color: #666; padding: 2rem;">
+            У вас пока нет сообщений.
+            <br>Начните общение с другого пользователя!
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

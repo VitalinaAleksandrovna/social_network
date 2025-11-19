@@ -7,27 +7,31 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title mb-0 text-danger">
+                <h4 class="card-title mb-0 text-danger d-flex align-items-center gap-2">
                     <i class="fas fa-exclamation-triangle"></i> Удаление фотографии
                 </h4>
             </div>
             <div class="card-body text-center">
                 {% if photo.image %}
-                    <img src="{{ photo.image.url }}" class="img-fluid mb-3" alt="{{ photo.caption }}" style="max-height: 300px;">
+                    <div class="mb-4">
+                        <img src="{{ photo.image.url }}" class="img-fluid rounded shadow" alt="{{ photo.caption }}" style="max-height: 300px;">
+                    </div>
                 {% endif %}
-                
-                <h5>Вы уверены, что хотите удалить эту фотографию?</h5>
-                
+
+                <h5 class="mb-3">Вы уверены, что хотите удалить эту фотографию?</h5>
+
                 {% if photo.caption %}
-                    <p class="text-muted">"{{ photo.caption }}"</p>
+                    <p class="text-muted mb-3">"{{ photo.caption }}"</p>
                 {% endif %}
-                
-                <p class="text-muted">Это действие нельзя отменить.</p>
+
+                <p class="text-muted mb-4">
+                    <i class="fas fa-info-circle"></i> Это действие нельзя отменить.
+                </p>
 
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <a href="{% url 'photo_detail' photo.id %}" class="btn btn-outline-secondary me-md-2">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'photo_detail' photo.id %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Отмена
                         </a>
                         <button type="submit" class="btn btn-danger">

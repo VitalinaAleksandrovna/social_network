@@ -113,20 +113,28 @@ def delete_photo(request, photo_id):
 @login_required
 def like_photo(request, photo_id):
     """API endpoint для лайков (AJAX)"""
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         photo = get_object_or_404(Photo, id=photo_id)
 
-        if photo.likes.filter(id=request.user.id).exists():
+        # Проверяем, лайкнул ли уже пользователь
+        user_has_liked = photo.likes.filter(id=request.user.id).exists()
+
+        if user_has_liked:
             photo.likes.remove(request.user)
             liked = False
         else:
             photo.likes.add(request.user)
             liked = True
 
+        # ОБНОВЛЯЕМ фото из базы чтобы получить актуальные данные
+        photo.refresh_from_db()
+
+        # ВОЗВРАЩАЕМ JSON для AJAX
         return JsonResponse({
+            'success': True,
             'liked': liked,
             'likes_count': photo.likes.count(),
             'photo_id': photo_id
         })
 
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)

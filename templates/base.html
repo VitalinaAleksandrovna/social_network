@@ -5,23 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Social Network{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/force-fix.css"> <!-- УЛЬТРА-ФИКС -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- ИНЛАЙН СТИЛИ ДЛЯ ГАРАНТИИ -->
+    <style>
+    /* АВАРТАРКИ НЕ МОГУТ БЫТЬ БОЛЬШИМИ! */
+    .user-avatar-small, .user-avatar, [class*="avatar"] {
+        width: 32px !important;
+        height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+    }
+    .user-avatar {
+        width: 40px !important;
+        height: 40px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
+    }
+    img[src*="profile_picture"] {
+        width: 40px !important;
+        height: 40px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
+    }
+
+    /* ГАРАНТИЯ БОЛЬШИХ ФОТОГРАФИЙ */
+    .photo-large, .photo-detail-image {
+        max-width: 100% !important;
+        max-height: 80vh !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 15px !important;
+    }
+    .photo-card-image {
+        height: 400px !important;
+        object-fit: cover !important;
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    /* ФИКС: Гарантируем, что фотографии не становятся аватарками */
+    img:not([class*="avatar"]):not(.user-avatar):not(.user-avatar-small) {
+        width: auto !important;
+        height: auto !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        object-fit: initial !important;
+    }
+    </style>
 </head>
 <body>
     <header>
         <div class="container">
             <nav>
                 <div class="logo">
-                    <a href="/" style="color: inherit; text-decoration: none;">🏠 Social Network</a>
+                    <a href="{% url 'photo_list' %}" style="color: inherit; text-decoration: none;">
+                        <i class="fas fa-home"></i> Social Network
+                    </a>
                 </div>
                 <div class="nav-links">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'user_profile' user.username %}">👤 Мой профиль</a>
-                        <a href="{% url 'profile_edit' %}">⚙️ Редактировать</a>
-                        <a href="{% url 'messages_inbox' %}">💌 Сообщения</a>
-                        <a href="{% url 'logout' %}">🚪 Выйти</a>
+                        <a href="{% url 'user_profile' user.username %}">
+                            <i class="fas fa-user"></i> Мой профиль
+                        </a>
+                        <a href="{% url 'profile_edit' %}">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </a>
                     {% else %}
-                        <a href="{% url 'login' %}">🔑 Войти</a>
-                        <a href="{% url 'register' %}">📝 Регистрация</a>
+                        <a href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </a>
+                        <a href="{% url 'register' %}">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </a>
                     {% endif %}
                 </div>
             </nav>
@@ -32,7 +93,10 @@
         {% if messages %}
             <div class="messages">
                 {% for message in messages %}
-                    <div class="message {{ message.tags }}">{{ message }}</div>
+                    <div class="alert alert-{{ message.tags }} alert-dismissible">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 {% endfor %}
             </div>
         {% endif %}
@@ -46,5 +110,134 @@
             <p>&copy; 2025 Social Network. Все права защищены.</p>
         </div>
     </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/main.js"></script>
+
+    <!-- УЛЬТРА-СКРИПТ ДЛЯ ИСПРАВЛЕНИЯ АВАТАРОК И ЛАЙКОВ -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 ULTRA-FIX ACTIVATED');
+
+        // Функция для ЯДЕРНОГО исправления аватарок
+        function nuclearAvatarFix() {
+            const avatars = document.querySelectorAll(`
+                img,
+                [class*="avatar"],
+                img[src*="profile_picture"],
+                img[src*="/media/"]
+            `);
+
+            avatars.forEach(avatar => {
+                // Пропускаем фотографии
+                if (avatar.classList.contains('photo-card-image') || 
+                    avatar.classList.contains('photo-detail-image') ||
+                    avatar.classList.contains('photo-large') ||
+                    avatar.src?.includes('/media/photos/')) {
+                    return;
+                }
+
+                // Полностью перезаписываем ВСЕ стили
+                avatar.style.cssText = '';
+
+                // Определяем размер по контексту
+                if (avatar.closest('.comment-item') || avatar.classList.contains('user-avatar-small')) {
+                    avatar.style.cssText = `
+                        width: 32px !important;
+                        height: 32px !important;
+                        max-width: 32px !important;
+                        max-height: 32px !important;
+                        min-width: 32px !important;
+                        min-height: 32px !important;
+                        border-radius: 50% !important;
+                        object-fit: cover !important;
+                        border: 1px solid #3498db !important;
+                        display: block !important;
+                    `;
+                    avatar.className = 'user-avatar-small';
+                } else {
+                    avatar.style.cssText = `
+                        width: 40px !important;
+                        height: 40px !important;
+                        max-width: 40px !important;
+                        max-height: 40px !important;
+                        min-width: 40px !important;
+                        min-height: 40px !important;
+                        border-radius: 50% !important;
+                        object-fit: cover !important;
+                        border: 2px solid #3498db !important;
+                        display: block !important;
+                    `;
+                    avatar.className = 'user-avatar';
+                }
+            });
+
+            console.log('Fixed', avatars.length, 'avatars');
+        }
+
+        // Функция для исправления фотографий
+        function nuclearPhotoFix() {
+            const photos = document.querySelectorAll(`
+                .photo-card-image,
+                .photo-detail-image,
+                .photo-large,
+                img[src*="/media/photos/"]
+            `);
+
+            photos.forEach(photo => {
+                // Сбрасываем все стили
+                photo.style.cssText = '';
+
+                // Применяем правильные стили
+                if (photo.classList.contains('photo-card-image')) {
+                    photo.style.cssText = `
+                        width: 100% !important;
+                        height: 400px !important;
+                        object-fit: cover !important;
+                        border-radius: 8px 8px 0 0 !important;
+                        display: block !important;
+                    `;
+                } else if (photo.classList.contains('photo-detail-image') || photo.classList.contains('photo-large')) {
+                    photo.style.cssText = `
+                        max-width: 100% !important;
+                        max-height: 80vh !important;
+                        width: auto !important;
+                        height: auto !important;
+                        object-fit: contain !important;
+                        border-radius: 15px !important;
+                        display: block !important;
+                        margin: 0 auto !important;
+                    `;
+                }
+            });
+
+            console.log('Fixed', photos.length, 'photos');
+        }
+
+        // Запускаем многократно
+        nuclearAvatarFix();
+        nuclearPhotoFix();
+
+        setTimeout(() => {
+            nuclearAvatarFix();
+            nuclearPhotoFix();
+        }, 100);
+        
+        setTimeout(() => {
+            nuclearAvatarFix();
+            nuclearPhotoFix();
+        }, 500);
+        
+        setTimeout(() => {
+            nuclearAvatarFix();
+            nuclearPhotoFix();
+        }, 1000);
+
+        window.addEventListener('load', () => {
+            nuclearAvatarFix();
+            nuclearPhotoFix();
+        });
+    });
+    </script>
 </body>
 </html>
